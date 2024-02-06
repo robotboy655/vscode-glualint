@@ -45,7 +45,7 @@ export default class GLuaLintingProvider implements vscode.Disposable {
             const groups: {[id: string]: vscode.Uri[];} = {};
             const virtualFiles: vscode.Uri[] = [];
             for (const file of allFiles) {
-                if (file.scheme !== "file") {
+                if (file.scheme !== 'file') {
                     virtualFiles.push(file);
                     continue;
                 }
@@ -249,27 +249,27 @@ export default class GLuaLintingProvider implements vscode.Disposable {
 
             const range = new vscode.Range(line, col, endLine, endCol);
             const diagnostic = new vscode.Diagnostic(range, text, type === 'Warning' ? vscode.DiagnosticSeverity.Warning : vscode.DiagnosticSeverity.Error);
-            //diagnostic.source = "gLuaLint";
+            //diagnostic.source = 'gLuaLint';
             diagnostic.relatedInformation = [];
 
-            const seeHere = text.match( /defined at line (\d+), column (\d+)/ );
-            //console.log( seeHere )
-            if ( seeHere )
-            {
-                const pos = new vscode.Position( parseInt( seeHere[ 1 ] ) - 1, parseInt( seeHere[ 2 ] ) - 1 );
-                diagnostic.relatedInformation.push(new vscode.DiagnosticRelatedInformation(new vscode.Location(docUris[0], pos), "See the earlier definition"));
+            const seeHere = text.match(/defined at line (\d+), column (\d+)/);
+            if (seeHere) {
+                const posS = new vscode.Position(parseInt(seeHere[ 1 ]) - 1, parseInt(seeHere[ 2 ]) - 1);
+
+                const variable = text.match(/Variable '(.+)'/);
+                const posE = new vscode.Position(posS.line, posS.character + variable[ 1 ].length);
+                diagnostic.relatedInformation.push(new vscode.DiagnosticRelatedInformation(new vscode.Location(docUris[0], new vscode.Range(posS,posE)), 'See the earlier definition'));
             }
+
             diagnostic.tags = [];
-            if ( text.toLowerCase().indexOf( "deprecated:" ) != -1 )
-            {
-                diagnostic.tags.push( vscode.DiagnosticTag.Deprecated );
+            if (text.toLowerCase().indexOf('deprecated:') != -1) {
+                diagnostic.tags.push(vscode.DiagnosticTag.Deprecated);
             }
-            if ( text.toLowerCase().indexOf( "empty " ) != -1 ||
-                text.toLowerCase().indexOf( "unused " ) != -1 ||
-                text.toLowerCase().indexOf( "unnecessary " ) != -1 ||
-                text.toLowerCase().indexOf( "trailing " ) != -1 )
-            {
-                diagnostic.tags.push( vscode.DiagnosticTag.Unnecessary );
+            if (text.toLowerCase().indexOf('empty ') != -1 ||
+                text.toLowerCase().indexOf('unused ') != -1 ||
+                //text.toLowerCase().indexOf('unnecessary ') != -1 ||
+                text.toLowerCase().indexOf('trailing ') != -1) {
+                diagnostic.tags.push(vscode.DiagnosticTag.Unnecessary);
             }
 
             if (!diagnostics[file]) diagnostics[file] = [];

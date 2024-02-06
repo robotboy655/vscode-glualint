@@ -4,14 +4,6 @@ import * as vscode from 'vscode';
 import * as utils from './utils';
 import LintProcess from './LintProcess';
 
-// Copied from markdown language service
-export enum DiagnosticCode {
-	link_noSuchReferences = 'Trailing whitespace',
-	link_noSuchHeaderInOwnFile = 'link.no-such-header-in-own-file',
-	link_noSuchFile = 'link.no-such-file',
-	link_noSuchHeaderInFile = 'link.no-such-header-in-file',
-}
-
 export default class GLuaLintFormatter implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
     public activate(subscriptions: vscode.Disposable[]) {
         const config = vscode.workspace.getConfiguration('glualint');
@@ -26,41 +18,7 @@ export default class GLuaLintFormatter implements vscode.DocumentFormattingEditP
                 scheme: '*',
                 language: lang,
             }, this));
-
-            subscriptions.push(vscode.languages.registerCodeActionsProvider({
-                scheme: '*',
-                language: lang,
-            }, this) );
         });
-    }
-
-    public provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.ProviderResult<(vscode.CodeAction | vscode.Command)[]>
-    {
-        const fixes: vscode.CodeAction[] = [];
-
-		for (const diagnostic of context.diagnostics) {
-            //console.log( "provideCodeActions '" + diagnostic.code + "'")
-
-			switch (diagnostic.message) {
-				case DiagnosticCode.link_noSuchReferences:
-				case DiagnosticCode.link_noSuchHeaderInOwnFile:
-				case DiagnosticCode.link_noSuchFile:
-				case DiagnosticCode.link_noSuchHeaderInFile:
-                {
-                    const fix = new vscode.CodeAction( "Trim all trailing whitespace", vscode.CodeActionKind.QuickFix );
-
-                    fix.command = {
-                        command: "editor.action.trimTrailingWhitespace",
-                        title: '',
-                        arguments: [],
-                    };
-                    fixes.push( fix );
-					break;
-				}
-			}
-		}
-
-		return fixes;
     }
 
     public provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken): vscode.ProviderResult<vscode.TextEdit[]> {
